@@ -31,7 +31,7 @@ jobs:
             SOURCE_USER=${{ github.event.inputs.sourceUser }}
             echo "SOURCE_USER=${SOURCE_USER:-dotnet}" >> $GITHUB_ENV
             SOURCE_REPO=${{ github.event.inputs.sourceRepo }}
-            echo "SOURCE_REP=${SOURCE_REPO:-runtime}" >> $GITHUB_ENV
+            echo "SOURCE_REPO=${SOURCE_REPO:-runtime}" >> $GITHUB_ENV
             SOURCE_BRANCH=${{ github.event.inputs.sourceBranch }}
             echo "SOURCE_BRANCH=${SOURCE_BRANCH:-release/5.0}" >> $GITHUB_ENV
             TARGET_BRANCH=${{ github.event.inputs.targetBranch }}
