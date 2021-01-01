@@ -49,7 +49,6 @@ jobs:
             if [ "$REV_HEAD_1" != "$(git rev-parse $SOURCE_USER/$SOURCE_BRANCH)" ]; then
               REV_HEAD=$(git rev-parse HEAD)
               git reset --hard $SOURCE_USER/$SOURCE_BRANCH
-              git cherry-pick --allow-empty $REV_HEAD
               git push -f https://$GITHUB_ACTOR:${{ secrets.RUNTIMEPUSH }}@github.com/${{ github.repository }}.git
             else
               echo "Skipping because we are in sync. $SOURCE_USER/$SOURCE_BRANCH: ${REV_HEAD_1}"
