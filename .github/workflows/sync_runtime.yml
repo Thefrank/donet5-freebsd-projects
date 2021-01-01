@@ -1,0 +1,67 @@
+name: Sync runtime
+on:
+  workflow_dispatch:
+    inputs:
+      sourceUser:
+        description: Source user
+        required: true
+        default: dotnet
+      sourceRepo:
+        description: Source repo
+        required: true
+        default: runtime
+      sourceBranch:
+        description: Source branch
+        required: true
+        default: release/5.0
+      targetBranch:
+        description: Target branch
+        required: true
+        default: runtime/5.x
+  schedule:
+    # rarely updated so 2*day should be fine
+    - cron:  '0 */12 * * *'
+# the actions/checkout thing doesnt seem cover my use case or im not smart enough to figure it out so this will either work great or kill the repo because xargs are scary
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set variables
+        run: |
+            SOURCE_USER=${{ github.event.inputs.sourceUser }}
+            echo "SOURCE_USER=${SOURCE_USER:-dotnet}" >> $GITHUB_ENV
+            SOURCE_REPO=${{ github.event.inputs.sourceRepo }}
+            echo "SOURCE_REP=${SOURCE_REPO:-runtime}" >> $GITHUB_ENV
+            SOURCE_BRANCH=${{ github.event.inputs.sourceBranch }}
+            echo "SOURCE_BRANCH=${SOURCE_BRANCH:-release/5.0}" >> $GITHUB_ENV
+            TARGET_BRANCH=${{ github.event.inputs.targetBranch }}
+            echo "TARGET_BRANCH=${TARGET_BRANCH:-runtime/5.x}" >> $GITHUB_ENV
+      - name: Checkout
+        run: git clone --branch $TARGET_BRANCH https://${{ secrets.RUNTIMECHECKOUT }}:x-oauth-basic@github.com/${{ github.repository }}.git .
+      - name: Update branch
+        run: |
+            set -x
+            git remote add $SOURCE_USER https://${{ secrets.RUNTIMECHECKOUT }}:x-oauth-basic@github.com/$SOURCE_USER/$SOURCE_REPO
+            git config --global user.name "$(git --no-pager log --format=format:'%an' -n 1)"
+            git config --global user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
+            REV_HEAD_1=$(git rev-parse HEAD~1)
+            git fetch --all
+            if [ "$REV_HEAD_1" != "$(git rev-parse $SOURCE_USER/$SOURCE_BRANCH)" ]; then
+              REV_HEAD=$(git rev-parse HEAD)
+              git reset --hard $SOURCE_USER/$SOURCE_BRANCH
+              git cherry-pick $REV_HEAD
+              git push -f https://$GITHUB_ACTOR:${{ secrets.RUNTIMEPUSH }}@github.com/${{ github.repository }}.git
+            else
+              echo "Skipping because we are in sync. $SOURCE_USER/$SOURCE_BRANCH: ${REV_HEAD_1}"
+            fi
+      - name: Cleanup old sync runs
+        run: |
+           set -x
+           curl -vvv https://api.github.com/repos/${{ github.repository }}/actions/runs -o content.json
+           cat content.json                                                                  \
+             | jq '.workflow_runs[] | select(.name == "Sync runtime" and .status == "completed").id' \
+             | sort -u                                                                       \
+             | head -n -1                                                                    \
+             | xargs -I{} curl -vvv -u $GITHUB_ACTOR:${{ secrets.RUNTIMEPUSH }} -XDELETE             \
+                 -H"Accept: application/vnd.github.v3+json"                                  \
+                 https://api.github.com/repos/${{ github.repository }}/actions/runs/{}
