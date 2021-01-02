@@ -22,6 +22,7 @@ on:
     # rarely updated so 2*day should be fine
     - cron:  '0 */12 * * *'
 # the actions/checkout thing doesnt seem cover my use case or im not smart enough to figure it out so this will either work great or kill the repo because xargs are scary
+# this will fail if clone/fork/branch were created even
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -49,7 +50,7 @@ jobs:
             if [ "$REV_HEAD_1" != "$(git rev-parse $SOURCE_USER/$SOURCE_BRANCH)" ]; then
               REV_HEAD=$(git rev-parse HEAD)
               git reset --hard $SOURCE_USER/$SOURCE_BRANCH
-              git cherry-pick --keep-redundant-commits $REV_HEAD 
+              git cherry-pick $REV_HEAD 
               git push -f https://$GITHUB_ACTOR:${{ secrets.RUNTIMEPUSH }}@github.com/${{ github.repository }}.git
             else
               echo "Skipping because we are in sync. $SOURCE_USER/$SOURCE_BRANCH: ${REV_HEAD_1}"
