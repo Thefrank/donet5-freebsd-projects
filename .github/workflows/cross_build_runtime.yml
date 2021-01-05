@@ -20,13 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Correct Branch        
-      run: echo "##[set-output name=branch;]${GITHUB_REF#refs/heads/${{ github.event.inputs.targetBranch }}}"
+      run: echo "##[set-output name=branch;]${GITHUB_REF#refs/heads/}"
       id: extract_branch
     - name: Checkout 2
       uses: actions/checkout@v2
       with:
        fetch-depth: 1
-       ref: ${{ steps.extract_branch.outputs.branch }}
+       ref: ${{ github.event.inputs.targetBranch }}
+#override to test build
+#       ref: ${{ steps.extract_branch.outputs.branch }}
        token: ${{ secrets.runtimecheckout }}
     - name: Get Latest Docker for FreeBSD
       run: |
