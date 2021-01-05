@@ -36,7 +36,7 @@ jobs:
    container: 
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-cross-freebsd-12-20201218203401-f13d79e
     volumes: 
-     - $(pwd):/runtime
+     - ${pwd}:/runtime
     options: -e $ROOTFS_DIR
    steps:
      - name: Build Linux->FreeBSD
