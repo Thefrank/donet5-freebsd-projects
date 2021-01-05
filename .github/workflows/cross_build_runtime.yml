@@ -1,5 +1,5 @@
 name: CI Cross Build Runtime
-#actions appears to pull docker images and sets them up before variables are declared need to use -v or -e from a variable? well, container: is not for you!
+#actions appears to pull docker images and sets them up before variables are declared. need to use -v or -e from a variable? well, container: is not for you!
 on:
   push:
     branches: runtime/5.x
@@ -12,7 +12,7 @@ on:
         default: runtime/5.x
 
 jobs:
-  build-runtime-and-tests:
+  build-runtime:
     env:
       ROOTFS_ENV: ROOTFS_DIR=/crossrootfs/x64
       DOTNET_DOCKER_SERVER: mcr.microsoft.com/dotnet-buildtools/prereqs
@@ -26,9 +26,7 @@ jobs:
       uses: actions/checkout@v2
       with:
        fetch-depth: 1
-       ref: ${{ github.event.inputs.targetBranch }}
-#override to test build
-#       ref: ${{ steps.extract_branch.outputs.branch }}
+       ref: ${{ steps.extract_branch.outputs.branch }}
        token: ${{ secrets.runtimecheckout }}
     - name: Get Latest Docker for FreeBSD
       run: |
