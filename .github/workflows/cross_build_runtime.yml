@@ -28,8 +28,9 @@ jobs:
          ref: ${{ steps.extract_branch.outputs.branch }}
          token: ${{ secrets.runtimecheckout }}
 #run might be better than whatever this mess I created is
+#actions also pulls the image before variables are declared so hard-coded
       - name: Build Runtime Linux->FreeBSD
-        uses: docker://$DOTNET_DOCKER_TAG
+        uses: docker://mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-cross-freebsd-12-20201218203401-f13d79e
         with: 
          args: $ROOTFS_ENV /runtime/build.sh -c Release -cross -os freebsd
         
